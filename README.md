@@ -7,5 +7,16 @@ A simple script to download wallpapers from popular subreddits
 ## Example
 > python reddit.py amoldedbackgrounds 10
 
-## Note:
-### Use version 2, it's faster and simpler
+## Output
+```
+Desktop\reddit-downloader> python reddit.py amoledbackgrounds 10  
+Downloading image 10 of 10...  
+Download Complete!  
+```
+
+## Pics
+![](imgs/op.png)
+
+
+## Result
+![](imgs/res.png)
