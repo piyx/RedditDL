@@ -1,7 +1,8 @@
 import os
+import sys
 import praw
-from collections import namedtuple
 import urllib.request
+from collections import namedtuple
 from secret import CLIENT_ID, CLIENT_SECRET, USER_AGENT
 
 Post = namedtuple('Post', ['name', 'url'])
@@ -13,7 +14,7 @@ class Reddit:
         self.subreddit = subreddit
         self.posts = []
 
-    def get_posts(self, amount=10):
+    def get_posts(self, amount):
         subreddit = self.reddit_client.subreddit(self.subreddit)
         for submission in subreddit.top(limit=amount):
             post = Post(submission.title, submission.url)
@@ -21,7 +22,7 @@ class Reddit:
 
     def download_posts(self):
         # path where images will be downloaded
-        path = "C:/Users/razor/Downloads/imgs/"
+        path = "C:/Users/ctrla/Downloads/imgs/"
         NUM_IMAGES = len(self.posts)
         for i, post in enumerate(self.posts, 1):
             ext = os.path.splitext(post.url)[-1]
@@ -31,6 +32,8 @@ class Reddit:
                 print(f"\rDownloading image {i} of {NUM_IMAGES}...", end="")
                 urllib.request.urlretrieve(post.url, path+post.name+ext)
 
+        print("\nDownload Complete!")
+
 
 def main():
     # reddit instance
@@ -38,8 +41,12 @@ def main():
                                 client_secret=CLIENT_SECRET,
                                 user_agent=USER_AGENT)
 
-    subreddit = input("Enter subreddit: ")
-    amount = int(input("Enter num images: "))
+    try:
+        subreddit = sys.argv[1]
+        amount = int(sys.argv[2])
+    except Exception:
+        return print("Error! Usage: python reddit.py <subreddit_name: string> <limit: integer>")
+
     reddit = Reddit(reddit_client, subreddit)
     reddit.get_posts(amount=amount)
     reddit.download_posts()
