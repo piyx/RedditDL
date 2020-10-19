@@ -1,54 +1,90 @@
 import os
 import sys
 import praw
-import urllib.request
-from collections import namedtuple
-from secret import CLIENT_ID, CLIENT_SECRET, USER_AGENT
+import argparse
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
-Post = namedtuple('Post', ['name', 'url'])
+ID = os.getenv("REDDIT_CLIENT_ID")
+SECRET = os.getenv("REDDIT_CLIENT_SECRET")
+AGENT = os.getenv("REDDIT_USER_AGENT")
+
+help = '''
+Error! Usage: python reddit.py <subreddit_name> [category] [limit]
+
+Arguments:
+1. subreddit_name: required argument
+2. category: optional, default=hot (top/hot/new)
+3. limit: optional, default=10
+
+Example:
+
+python reddit.py wallpapers top 10
+'''
 
 
 class Reddit:
-    def __init__(self, client, subreddit):
-        self.reddit_client = client
+    def __init__(self, client, subreddit, category):
+        self.client = client
         self.subreddit = subreddit
+        self.category = category
+        self.path = "C:/Users/ctrla/Downloads/imgs/"
         self.posts = []
 
-    def get_posts(self, amount):
-        subreddit = self.reddit_client.subreddit(self.subreddit)
-        for submission in subreddit.top(limit=amount):
-            post = Post(submission.title, submission.url)
-            self.posts.append(post)
+    def get_posts(self, amount=10):
+        try:
+            subreddit = self.client.subreddit(self.subreddit)
+            if self.category == "top":
+                submissions = subreddit.top(limit=amount)
+            elif self.category == 'new':
+                submissions = subreddit.new(limit=amount)
+            else:
+                submissions = subreddit.hot(limit=amount)
+
+            for submission in submissions:
+                self.posts.append(submission.url)
+        except:
+            print(f"{subreddit} subreddit could not be found!")
+            sys.exit()
 
     def download_posts(self):
-        # path where images will be downloaded
-        path = "C:/Users/ctrla/Downloads/imgs/"
-        NUM_IMAGES = len(self.posts)
-        for i, post in enumerate(self.posts, 1):
-            ext = os.path.splitext(post.url)[-1]
-            if not ext:
-                print(f"Post {i} is not an image!")
-            else:
-                print(f"\rDownloading image {i} of {NUM_IMAGES}...", end="")
-                urllib.request.urlretrieve(post.url, path+post.name+ext)
+        n = len(self.posts)
+        os.chdir(self.path)
+        for i, url in enumerate(self.posts):
+            print(f"\rDownloading {i+1} of {n}...", end="")
+            try:
+                data = urlopen(url).read()
+                ext = os.path.splitext(url)[-1]
+                if not ext:
+                    continue
+                with open(f"image{i+1}{ext}", 'wb') as f:
+                    f.write(data)
+            except HTTPError:
+                print("\rHTTP Error 500!", end="")
 
-        print("\nDownload Complete!")
+        print("\rDownload Completed Successfully!", end="")
 
 
 def main():
     # reddit instance
-    reddit_client = praw.Reddit(client_id=CLIENT_ID,
-                                client_secret=CLIENT_SECRET,
-                                user_agent=USER_AGENT)
+    reddit = praw.Reddit(client_id=ID,
+                         client_secret=SECRET,
+                         user_agent=AGENT)
 
-    try:
-        subreddit = sys.argv[1]
-        amount = int(sys.argv[2])
-    except Exception:
-        return print("Error! Usage: python reddit.py <subreddit_name: string> <limit: integer>")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('subreddit_name', type=str, help="Name of subreddit")
+    parser.add_argument('-category', type=str, default='hot',
+                        help="Category (hot/top/new) [default=hot]")
+    parser.add_argument('-limit', type=int, default=10,
+                        help="Number of images to download [default=10]")
 
-    reddit = Reddit(reddit_client, subreddit)
-    reddit.get_posts(amount=amount)
+    args = parser.parse_args()
+    subreddit = args.subreddit_name
+    category = args.category
+    limit = args.limit
+
+    reddit = Reddit(reddit, subreddit, category)
+    reddit.get_posts(amount=limit)
     reddit.download_posts()
 
 
