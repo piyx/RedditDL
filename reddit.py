@@ -9,19 +9,6 @@ ID = os.getenv("REDDIT_CLIENT_ID")
 SECRET = os.getenv("REDDIT_CLIENT_SECRET")
 AGENT = os.getenv("REDDIT_USER_AGENT")
 
-help = '''
-Error! Usage: python reddit.py <subreddit_name> [category] [limit]
-
-Arguments:
-1. subreddit_name: required argument
-2. category: optional, default=hot (top/hot/new)
-3. limit: optional, default=10
-
-Example:
-
-python reddit.py wallpapers top 10
-'''
-
 
 class Reddit:
     def __init__(self, client, subreddit, category):
