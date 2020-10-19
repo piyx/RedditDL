@@ -15,7 +15,7 @@ optional arguments:
 ```
 
 ## Example
-`python reddit.py amoldedbackgrounds -category=top -limit=10`
+`python reddit.py wallpapers -category=top -limit=10`
 
 ## Output
 ```

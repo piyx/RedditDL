@@ -48,8 +48,10 @@ class Reddit:
                     f.write(data)
             except HTTPError:
                 print("\rHTTP Error 500!", end="")
+            except WindowsError:
+                pass
 
-        print("\rDownload Completed Successfully!", end="")
+        print("\nDownload Completed Successfully!", end="")
 
 
 def main():
