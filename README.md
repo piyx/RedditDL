@@ -20,7 +20,7 @@ optional arguments:
 ## Output
 ```
 Desktop\reddit-downloader> python reddit.py amoledbackgrounds -category=top -limit=10  
-Downloading image 1 of 10...
+Downloading 10 of 10...
 Download Completed Successffully!   
 ```
 
