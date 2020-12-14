@@ -1,81 +1,47 @@
-import os
-import sys
-import praw
-import argparse
 from urllib.error import HTTPError
 from urllib.request import urlopen
-
-ID = os.getenv("REDDIT_CLIENT_ID")
-SECRET = os.getenv("REDDIT_CLIENT_SECRET")
-AGENT = os.getenv("REDDIT_USER_AGENT")
-
-
-class Reddit:
-    def __init__(self, client, subreddit, category):
-        self.client = client
-        self.subreddit = subreddit
-        self.category = category
-        self.path = "C:/Users/ctrla/Downloads/imgs/"
-        self.posts = []
-
-    def get_posts(self, amount=10):
-        try:
-            subreddit = self.client.subreddit(self.subreddit)
-            if self.category == "top":
-                submissions = subreddit.top(limit=amount)
-            elif self.category == 'new':
-                submissions = subreddit.new(limit=amount)
-            else:
-                submissions = subreddit.hot(limit=amount)
-
-            for submission in submissions:
-                self.posts.append(submission.url)
-        except:
-            print(f"{subreddit} subreddit could not be found!")
-            sys.exit()
-
-    def download_posts(self):
-        n = len(self.posts)
-        os.chdir(self.path)
-        for i, url in enumerate(self.posts):
-            print(f"\rDownloading {i+1} of {n}...", end="")
-            try:
-                data = urlopen(url).read()
-                ext = os.path.splitext(url)[-1]
-                if not ext:
-                    continue
-                with open(f"image{i+1}{ext}", 'wb') as f:
-                    f.write(data)
-            except HTTPError:
-                print("\rHTTP Error 500!", end="")
-            except WindowsError:
-                pass
-
-        print("\nDownload Completed Successfully!", end="")
+import praw
+import enum
+import os
 
 
-def main():
-    # reddit instance
-    reddit = praw.Reddit(client_id=ID,
-                         client_secret=SECRET,
-                         user_agent=AGENT)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('subreddit_name', type=str, help="Name of subreddit")
-    parser.add_argument('-category', type=str, default='hot',
-                        help="Category (hot/top/new) [default=hot]")
-    parser.add_argument('-limit', type=int, default=10,
-                        help="Number of images to download [default=10]")
-
-    args = parser.parse_args()
-    subreddit = args.subreddit_name
-    category = args.category
-    limit = args.limit
-
-    reddit = Reddit(reddit, subreddit, category)
-    reddit.get_posts(amount=limit)
-    reddit.download_posts()
+class Category(enum.Enum):
+    HOT = "hot"
+    TOP = "top"
+    NEW = "new"
 
 
-if __name__ == "__main__":
-    main()
+class RedditClientManager:
+    def __init__(self):
+        self.client_id = os.getenv("REDDIT_CLIENT_ID")
+        self.client_secret = os.getenv("REDDIT_CLIENT_SECRET")
+        self.user_agent = os.getenv("REDDIT_USER_AGENT")
+
+    @property
+    def reddit_client(self):
+        '''
+        Return reddit client
+        '''
+        return praw.Reddit(
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            user_agent=self.user_agent
+        )
+
+
+def download_post(post_url: str, img_name: str) -> None:
+    '''
+    Downloads the image from the given url
+    '''
+    extension = os.path.splitext(post_url)[-1]
+    
+    if not extension:
+        return
+    
+    try:
+        img_data = urlopen(post_url).read()
+        with open(f'{img_name}{extension}', 'wb') as img:
+            img.write(img_data)
+    
+    except (HTTPError, WindowsError):
+        pass
