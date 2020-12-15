@@ -34,14 +34,15 @@ def download_post(post_url: str, img_name: str) -> None:
     Downloads the image from the given url
     '''
     extension = os.path.splitext(post_url)[-1]
-    
+
     if not extension:
-        return
-    
+        return False
+
     try:
         img_data = urlopen(post_url).read()
         with open(f'{img_name}{extension}', 'wb') as img:
             img.write(img_data)
-    
+            return True
+
     except (HTTPError, WindowsError):
-        pass
+        return False
