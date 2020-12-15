@@ -48,7 +48,7 @@ def ask_download_path():
     options = {
         'type': 'list',
         'name': 'choice',
-        'message': 'Where do you want to download the song?',
+        'message': 'Where do you want to download the images?',
         'choices': [
             '1.Current folder',
             '2.Create a new folder here and download',
