@@ -4,18 +4,20 @@ from PyInquirer import prompt
 from reddit import Category
 import concurrent.futures
 from pathlib import Path
+import time
 import sys
 import os
 
 
 def ask_subreddit():
     question = {
-            'type': 'input',
-            'name': 'subreddit',
-            'message': 'Enter the name of the subreddit:'
-        }
-    
+        'type': 'input',
+        'name': 'subreddit',
+        'message': 'Enter the name of the subreddit:'
+    }
+
     return prompt(question)['subreddit']
+
 
 def select_category():
     options = {
@@ -30,15 +32,17 @@ def select_category():
     }
     return prompt(options)['choice']
 
+
 def ask_limit():
     question = {
-            'type': 'input',
-            'name': 'limit',
-            'message': 'How many images do you want to download?',
-            'validate': lambda val: val.isdigit() or 'Please Enter a number!'
-        }
-    
+        'type': 'input',
+        'name': 'limit',
+        'message': 'How many images do you want to download?',
+        'validate': lambda val: val.isdigit() or 'Please Enter a number!'
+    }
+
     return prompt(question)['limit']
+
 
 def ask_download_path():
     options = {
@@ -73,7 +77,7 @@ def ask_download_path():
         ques = {
             'type': 'input',
             'name': 'path',
-            'message': 'Enter path where songs should be downloaded:'
+            'message': 'Enter path where images should be downloaded:'
         }
 
         return prompt(ques)['path']
@@ -85,7 +89,7 @@ def ask_download_path():
 def main():
     subreddit = ask_subreddit()
     category = select_category()
-    limit = ask_limit()
+    limit = int(ask_limit())
     path = ask_download_path()
 
     if not os.path.exists(path):
@@ -97,12 +101,23 @@ def main():
     client_manager = RedditClientManager()
     reddit = client_manager.reddit_client
 
-
     getposts = getattr(reddit.subreddit(subreddit), category)
 
+    imgs_downloaded = 0
+    start = time.perf_counter()
+
+    processes = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        for i, post in enumerate(getposts(), 1):
-            executor.submit(download_post, post.url, i)
+        for i, post in enumerate(getposts(limit=limit), 1):
+            processes.append(executor.submit(download_post, post.url, i))
+
+    end = time.perf_counter()
+
+    for p in concurrent.futures.as_completed(processes):
+        imgs_downloaded += int(p.result())
+
+    print(f"Complete! Downloaded {imgs_downloaded} of {limit} imgs.", end="")
+    print(f"It took {end-start} seconds.")
 
 
 if __name__ == "__main__":
