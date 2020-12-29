@@ -101,14 +101,20 @@ def main():
     client_manager = RedditClientManager()
     reddit = client_manager.reddit_client
 
-    getposts = getattr(reddit.subreddit(subreddit), category)
+    try:
+        posts_generator = getattr(reddit.subreddit(subreddit), category)
+        posts = list(posts_generator(limit=limit))
+    except:
+        return print("Invalid subreddit!")
 
     imgs_downloaded = 0
     start = time.perf_counter()
 
+    print("Downloading...")
+
     processes = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        for i, post in enumerate(getposts(limit=limit), 1):
+        for i, post in enumerate(posts, 1):
             processes.append(executor.submit(download_post, post.url, i))
 
     end = time.perf_counter()
