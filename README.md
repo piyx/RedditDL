@@ -12,7 +12,7 @@ A simple script to download wallpapers from popular subreddits
 
 ## Output
 
-![](imgs/output.png)
+![](imgs/terminal.png)
 
 ## Result
 
