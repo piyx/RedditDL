@@ -1,4 +1,4 @@
-# reddit_downloader
+# RedditDL
 
 A simple script to download wallpapers from popular subreddits
 
