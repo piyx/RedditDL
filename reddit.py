@@ -1,8 +1,12 @@
 from urllib.error import HTTPError
 from urllib.request import urlopen
+from dotenv import load_dotenv
 import praw
 import enum
 import os
+
+
+load_dotenv('.env')
 
 
 class Category(enum.Enum):
